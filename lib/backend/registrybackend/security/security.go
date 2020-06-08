@@ -117,15 +117,9 @@ func (a *authenticator) shouldAuth() bool {
 
 func (a *authenticator) transport(repo string) http.RoundTripper {
 	basicHandler := auth.NewBasicHandler(a.credentialStore)
-	bearerHandler, _ := a.tokenHandlers.LoadOrStore(repo, auth.NewTokenHandlerWithOptions(auth.TokenHandlerOptions{
+	bearerHandler, _ := a.tokenHandlers.LoadOrStore("global", auth.NewTokenHandlerWithOptions(auth.TokenHandlerOptions{
 		Transport:   a.roundTripper,
 		Credentials: a.credentialStore,
-		Scopes: []auth.Scope{
-			auth.RepositoryScope{
-				Repository: repo,
-				Actions:    []string{"pull", "push"},
-			},
-		},
 		ClientID: "docker",
 	}))
 	return transport.NewTransport(a.roundTripper, auth.NewAuthorizer(a.challengeManager, basicHandler, bearerHandler.(auth.AuthenticationHandler)))
